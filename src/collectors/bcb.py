@@ -99,7 +99,7 @@ def collect_all(start_date: str = None):
         logger.info(f"Coletando: {name} (série {code})")
         try:
             # séries diárias: coleta ano a ano para não sobrecarregar a API
-            if code in ("432", "1"):
+            if code in ("432", "1", "433", "24369"):
                 start = datetime.strptime(start_date, "%d/%m/%Y")
                 end   = date.today()
                 current = start
