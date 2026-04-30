@@ -4,8 +4,8 @@ Rode com: streamlit run dashboard/app.py
 """
 
 import streamlit as st
-import plotly.express as px
 import plotly.graph_objects as go
+import pandas as pd
 import sys
 import os
 
@@ -18,6 +18,9 @@ from src.analysis.queries import (
     get_ipca_acumulado_12m,
     get_correlation_cambio_ipca,
     get_juros_reais,
+    get_selic_mensal,
+    get_cdi_historico,
+    get_expectativa_focus,
 )
 
 # ── Tema e configuração ───────────────────────────────────────
@@ -52,7 +55,6 @@ FILL_COLORS = {
     "24369": "rgba(240, 98, 146, 0.08)",
 }
 
-
 st.markdown("""
 <style>
     [data-testid="stAppViewContainer"] { background-color: #0f0f1a; }
@@ -71,7 +73,7 @@ st.caption("Fonte: Banco Central do Brasil — API pública SGS")
 st.divider()
 
 # ── KPIs ──────────────────────────────────────────────────────
-latest  = get_latest_values()
+latest   = get_latest_values()
 ipca_12m = get_ipca_acumulado_12m()
 
 kpi_cols = st.columns(5)
@@ -91,16 +93,15 @@ st.markdown("### Histórico dos indicadores")
 col_left, col_right = st.columns(2)
 
 series_map = {
-    "IPCA":        ("433", "% ao mês"),
-    "Selic":       ("432", "% ao ano"),
-    "Câmbio USD":  ("1",   "R$"),
-    "Desemprego":  ("24369", "% da PEA"),
+    "IPCA":       ("433",   "% ao mês"),
+    "Selic":      ("432",   "% ao ano"),
+    "Câmbio USD": ("1",     "R$"),
+    "Desemprego": ("24369", "% da PEA"),
 }
 
-items = list(series_map.items())
-
-for idx, col in enumerate([col_left, col_right, col_left, col_right]):
-    name, (code, unit) = items[idx]
+for idx, (col, (name, (code, unit))) in enumerate(
+    zip([col_left, col_right, col_left, col_right], series_map.items())
+):
     with col:
         max_months = get_months_available(code)
         months = st.slider(f"{name}", 12, max_months, min(60, max_months), key=f"slider_{code}")
@@ -186,6 +187,70 @@ if not df_jr.empty:
         legend=dict(orientation="h", y=1.1, x=0),
     )
     st.plotly_chart(fig3, use_container_width=True)
+
+st.divider()
+
+# ── Selic, CDI e expectativa Focus ───────────────────────────
+st.markdown("### Selic e CDI — histórico e expectativa de mercado")
+st.caption("Histórico real + expectativa Focus por reunião do Copom (BCB).")
+
+df_selic     = get_selic_mensal()
+df_cdi       = get_cdi_historico()
+df_focus     = get_expectativa_focus(meetings_ahead=6)
+
+fig4 = go.Figure()
+
+# Selic histórica real
+fig4.add_trace(go.Scatter(
+    x=df_selic["mes"], y=df_selic["selic"],
+    mode="lines",
+    line=dict(color=COLORS["432"], width=2),
+    name="Selic histórica",
+))
+
+# CDI histórico real
+fig4.add_trace(go.Scatter(
+    x=df_cdi["ds"], y=df_cdi["cdi"],
+    mode="lines",
+    line=dict(color=COLORS["1"], width=2),
+    name="CDI histórico",
+))
+
+# Selic esperada pelo Focus (mediana dos analistas)
+fig4.add_trace(go.Scatter(
+    x=df_focus["ds"], y=df_focus["selic_esperada"],
+    mode="lines+markers",
+    line=dict(color=COLORS["432"], width=2, dash="dot"),
+    marker=dict(size=6),
+    name="Selic esperada (Focus)",
+))
+
+# CDI estimado com base no Focus (Selic Focus - 0.10)
+fig4.add_trace(go.Scatter(
+    x=df_focus["ds"], y=df_focus["selic_esperada"] - 0.10,
+    mode="lines+markers",
+    line=dict(color=COLORS["1"], width=2, dash="dot"),
+    marker=dict(size=6),
+    name="CDI estimado (Focus)",
+))
+
+# Banda de min/max do Focus
+fig4.add_trace(go.Scatter(
+    x=pd.concat([df_focus["ds"], df_focus["ds"][::-1]]),
+    y=pd.concat([df_focus["Maximo"], df_focus["Minimo"][::-1]]),
+    fill="toself",
+    fillcolor="rgba(240,165,0,0.08)",
+    line=dict(color="rgba(0,0,0,0)"),
+    name="Intervalo Focus (min/max)",
+))
+
+fig4.update_layout(
+    **PLOTLY_THEME,
+    height=400,
+    legend=dict(orientation="h", y=1.1, x=0),
+)
+
+st.plotly_chart(fig4, use_container_width=True)
 
 st.divider()
 st.caption("Dados coletados via API pública do Banco Central do Brasil (SGS). Atualização manual via `python -m src.collectors.bcb`.")

@@ -39,5 +39,6 @@ INSERT INTO economic_series (code, name, unit, frequency) VALUES
     ('433',   'IPCA',           '% ao mês',  'monthly'),
     ('432',   'Selic',          '% ao ano',  'daily'),
     ('1',     'Câmbio USD/BRL', 'R$',        'daily'),
-    ('24369', 'Desemprego',     '% da PEA',  'monthly')
+    ('24369', 'Desemprego',     '% da PEA',  'monthly'),
+    ('12', 'CDI', '% ao ano', 'daily')
 ON CONFLICT (code) DO NOTHING;

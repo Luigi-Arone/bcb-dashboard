@@ -23,6 +23,7 @@ SERIES = {
     "432":   "Selic",
     "1":     "Câmbio USD/BRL",
     "24369": "Desemprego",
+    "12": "CDI",
 }
 
 def get_session():
