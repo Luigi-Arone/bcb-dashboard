@@ -7,7 +7,6 @@ import requests
 import logging
 from datetime import datetime, date
 from src.db.connection import get_connection
-from datetime import date
 from dateutil.relativedelta import relativedelta
 from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
@@ -34,16 +33,10 @@ def get_session():
     return session
  
  
-def fetch_series(code: str, start_date: str = "01/01/2010") -> list[dict]:
-    """
-    Busca uma série histórica na API do BCB.
-    Args:
-        code: código da série (ex: "433" para IPCA)
-        start_date: data inicial no formato dd/mm/yyyy
-    Returns:
-        Lista de dicts com chaves 'data' e 'valor'
-    """
-    today = date.today().strftime("%d/%m/%Y")
+def fetch_series(code: str, start_date: str = None, end_date: str = None) -> list[dict]:
+    if start_date is None:
+        start_date = (date.today() - relativedelta(years=10)).strftime("%d/%m/%Y")
+    today = end_date if end_date else date.today().strftime("%d/%m/%Y")
     url = BCB_API_URL.format(code=code)
     params = {
         "dataInicial": start_date,
@@ -99,16 +92,39 @@ def upsert_records(records: list[tuple]) -> int:
  
  
 def collect_all(start_date: str = None):
-    """Coleta todas as séries configuradas e salva no banco."""
     if start_date is None:
         start_date = (date.today() - relativedelta(years=10)).strftime("%d/%m/%Y")
+
     for code, name in SERIES.items():
         logger.info(f"Coletando: {name} (série {code})")
         try:
-            raw = fetch_series(code, start_date)
-            records = parse_records(code, raw)
-            inserted = upsert_records(records)
-            logger.info(f"  ✅ {len(records)} registros processados, {inserted} inseridos")
+            # séries diárias: coleta ano a ano para não sobrecarregar a API
+            if code in ("432", "1"):
+                start = datetime.strptime(start_date, "%d/%m/%Y")
+                end   = date.today()
+                current = start
+                total_inserted = 0
+                total_records  = 0
+
+                while current.date() <= end:
+                    year_end = min(
+                        datetime(current.year, 12, 31),
+                        datetime(end.year, end.month, end.day)
+                    )
+                    raw      = fetch_series(code, current.strftime("%d/%m/%Y"), year_end.strftime("%d/%m/%Y"))
+                    records  = parse_records(code, raw)
+                    inserted = upsert_records(records)
+                    total_records  += len(records)
+                    total_inserted += inserted
+                    current = datetime(current.year + 1, 1, 1)
+
+                logger.info(f"  ✅ {total_records} registros processados, {total_inserted} inseridos")
+            else:
+                raw      = fetch_series(code, start_date)
+                records  = parse_records(code, raw)
+                inserted = upsert_records(records)
+                logger.info(f"  ✅ {len(records)} registros processados, {inserted} inseridos")
+
         except Exception as e:
             logger.error(f"  ❌ Erro ao coletar {name}: {e}")
  

@@ -13,6 +13,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from src.analysis.queries import (
     get_latest_values,
+    get_months_available,
     get_series_history,
     get_ipca_acumulado_12m,
     get_correlation_cambio_ipca,
@@ -101,7 +102,8 @@ items = list(series_map.items())
 for idx, col in enumerate([col_left, col_right, col_left, col_right]):
     name, (code, unit) = items[idx]
     with col:
-        months = st.slider(f"{name}", 12, 180, 60, key=f"slider_{code}")
+        max_months = get_months_available(code)
+        months = st.slider(f"{name}", 12, max_months, min(60, max_months), key=f"slider_{code}")
         df = get_series_history(code, months)
         if df.empty:
             st.warning("Sem dados. Rode o coletor primeiro.")

@@ -3,6 +3,8 @@ Funções que executam as queries analíticas e retornam DataFrames
 prontos para o Streamlit/Plotly consumir.
 """
 
+import streamlit as st
+
 import pandas as pd
 from src.db.connection import get_dict_connection
 
@@ -143,3 +145,21 @@ def get_juros_reais(months: int = 36) -> pd.DataFrame:
             cur.execute(sql % months)
             rows = cur.fetchall()
             return pd.DataFrame([dict(r) for r in rows])
+        
+
+@st.cache_data(ttl=3600)
+def get_months_available(series_code: str) -> int:
+    """Retorna quantos meses de dados existem para uma série."""
+    sql = """
+        SELECT
+        (DATE_PART('year', MAX(date)) - DATE_PART('year', MIN(date))) * 12
+        + (DATE_PART('month', MAX(date)) - DATE_PART('month', MIN(date)))
+        AS meses
+        FROM economic_data
+        WHERE series_code = %s
+        """
+    with get_dict_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (series_code,))
+            row = cur.fetchone()
+            return int(row["meses"]) if row["meses"] else 12
