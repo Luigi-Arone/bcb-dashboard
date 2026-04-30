@@ -37,7 +37,7 @@ dashboard/app.py          ← Streamlit: visualização interativa
 ## 🚀 Como rodar
 
 ### Pré-requisitos
-- Python 3.10+
+- Python 3.11
 - Docker e Docker Compose
 
 ### 1. Suba o banco
