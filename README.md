@@ -57,7 +57,7 @@ psql -h localhost -U postgres -d bcb_dashboard -f sql/schema.sql
 
 ### 4. Colete os dados
 ```bash
-python src/collectors/bcb.py
+python -m src.collectors.bcb
 ```
 
 ### 5. Rode o dashboard
