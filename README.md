@@ -40,6 +40,13 @@ dashboard/app.py          ← Streamlit: visualização interativa
 - Python 3.11
 - Docker e Docker Compose
 
+### Inicialização rápida
+```bash
+./setup.sh
+```
+
+### Inicialização manual
+
 ### 1. Suba o banco
 ```bash
 docker-compose up -d
