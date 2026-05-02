@@ -169,7 +169,7 @@ def get_selic_mensal() -> pd.DataFrame:
             cur.execute(sql)
             rows = cur.fetchall()
             df = pd.DataFrame([dict(r) for r in rows])
-            df["mes"] = pd.to_datetime(df["mes"]).dt.tz_localize(None)
+            df["mes"] = pd.to_datetime(df["mes"], utc=True).dt.tz_convert(None)
             return df
 
 
@@ -188,7 +188,7 @@ def get_cdi_historico() -> pd.DataFrame:
             cur.execute(sql)
             rows = cur.fetchall()
             df = pd.DataFrame([dict(r) for r in rows])
-            df["ds"] = pd.to_datetime(df["ds"]).dt.tz_localize(None)
+            df["ds"] = pd.to_datetime(df["ds"], utc=True).dt.tz_convert(None)
             return df
 
 
