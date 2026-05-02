@@ -21,8 +21,9 @@ def get_ipca_acumulado_12m() -> float:
         SELECT DISTINCT ON (DATE_TRUNC('month', date)) value
         FROM economic_data
         WHERE series_code = '433'
-        AND date >= NOW() - INTERVAL '12 months'
+        AND date >= NOW() - INTERVAL '14 months'
         ORDER BY DATE_TRUNC('month', date), date DESC
+        LIMIT 12
         ) AS ipca_mensal
         """
     with get_dict_connection() as conn:
