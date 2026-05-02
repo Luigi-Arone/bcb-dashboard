@@ -142,8 +142,8 @@ def get_juros_reais(months: int = 36) -> pd.DataFrame:
             ROUND(s.selic, 2)               AS selic_pct,
             ROUND(i.ipca, 2)                AS ipca_mensal,
             ROUND(
-            ((1 + s.selic/100) / (1 + (i.ipca*12/100) -1) * 100,2)
-            ) AS juro_real
+            ((1 + s.selic/100) / (1 + (i.ipca * 12)/100) - 1) * 100,
+            2) AS juro_real
         FROM monthly_selic s
         JOIN monthly_ipca i ON i.mes = s.mes
         WHERE s.mes >= NOW() - INTERVAL '%s months'
