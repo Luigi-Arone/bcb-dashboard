@@ -1,0 +1,24 @@
+# .github/workflows/collect.yml
+name: Coleta diária BCB
+
+on:
+  schedule:
+    - cron: '0 8 * * *'  # todo dia às 8h UTC (5h BRT)
+  workflow_dispatch:      # permite rodar manualmente também
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - run: pip install -r requirements.txt
+      - run: python -m src.collectors.bcb
+        env:
+          DB_HOST: ${{ secrets.DB_HOST }}
+          DB_PORT: ${{ secrets.DB_PORT }}
+          DB_NAME: ${{ secrets.DB_NAME }}
+          DB_USER: ${{ secrets.DB_USER }}
+          DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
