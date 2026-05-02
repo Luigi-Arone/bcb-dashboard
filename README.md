@@ -2,6 +2,8 @@
 
 Pipeline de dados que coleta indicadores econômicos do Banco Central do Brasil, armazena em PostgreSQL e exibe em um dashboard interativo com Streamlit — incluindo expectativa de mercado para Selic e CDI via API Focus (BCB).
 
+> 🚀 **[Acesse o dashboard ao vivo](https://bcb-dashboard.streamlit.app)**
+
 ## 🗂️ Indicadores monitorados
 
 | Indicador | Série BCB | Descrição |
@@ -24,7 +26,7 @@ src/collectors/bcb.py     ←→   src/analysis/queries.py
 src/db/loader.py                       │
         │                              │
         ▼                              │
-PostgreSQL                             │
+PostgreSQL (Supabase)                  │
   ├── economic_series                  │
   └── economic_data  ─────────────────┘
         │
@@ -43,8 +45,9 @@ dashboard/app.py          ← Streamlit: visualização interativa com dark mode
 - Juros reais (Selic − IPCA anualizado) com destaque para períodos negativos
 - Selic e CDI históricos lado a lado
 - **Expectativa de mercado para Selic e CDI** por reunião do Copom via API Focus (BCB)
+- **Coleta automática diária** via GitHub Actions às 8h UTC
 
-## 🚀 Como rodar
+## 🚀 Como rodar localmente
 
 ### Pré-requisitos
 - Python 3.11
@@ -65,7 +68,8 @@ docker-compose up -d
 **2. Crie o ambiente virtual e instale as dependências**
 ```bash
 python3.11 -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # Linux/Mac
+venv\Scripts\activate     # Windows
 pip install -r requirements.txt
 ```
 
@@ -84,9 +88,27 @@ python -m src.collectors.bcb
 streamlit run dashboard/app.py
 ```
 
+## ☁️ Deploy em produção
+
+O projeto roda em produção com:
+
+- **Supabase** — PostgreSQL gerenciado na nuvem (plano gratuito)
+- **Streamlit Community Cloud** — hospedagem do dashboard (plano gratuito)
+- **GitHub Actions** — coleta automática diária dos dados
+
+Para fazer seu próprio deploy, configure as seguintes variáveis de ambiente no Streamlit Cloud (**Settings → Secrets**) e no GitHub (**Settings → Secrets → Actions**):
+
+```toml
+DB_HOST = "seu_host_supabase"
+DB_PORT = "5432"
+DB_NAME = "postgres"
+DB_USER = "seu_usuario_supabase"
+DB_PASSWORD = "sua_senha_supabase"
+```
+
 ## 🔄 Atualização dos dados
 
-A coleta é manual. Para atualizar os dados a qualquer momento:
+Os dados são coletados automaticamente todo dia às **8h UTC** via GitHub Actions. Para forçar uma atualização manual:
 
 ```bash
 python -m src.collectors.bcb
@@ -99,23 +121,27 @@ A API do Banco Central disponibiliza dados dos últimos 10 anos. O intervalo é 
 ```
 bcb-dashboard/
 ├── README.md
-├── LICENSE                     # MIT License
-├── setup.sh                    # Inicialização rápida
+├── LICENSE                         # MIT License
+├── runtime.txt                     # Força Python 3.11 no Streamlit Cloud
+├── setup.sh                        # Inicialização rápida
 ├── docker-compose.yml
 ├── requirements.txt
+├── .github/
+│   └── workflows/
+│       └── collect.yml             # Coleta automática diária
 ├── sql/
-│   ├── schema.sql              # Criação das tabelas e seed de metadados
-│   └── queries.sql             # Queries analíticas documentadas
+│   ├── schema.sql                  # Criação das tabelas e seed de metadados
+│   └── queries.sql                 # Queries analíticas documentadas
 ├── src/
 │   ├── collectors/
-│   │   └── bcb.py              # Coleta da API do BCB com retry automático
+│   │   └── bcb.py                  # Coleta da API do BCB com retry automático
 │   ├── db/
-│   │   ├── connection.py       # Gerenciamento de conexão
-│   │   └── loader.py           # Inserção dos dados com upsert
+│   │   ├── connection.py           # Gerenciamento de conexão
+│   │   └── loader.py               # Inserção dos dados com upsert em batch
 │   └── analysis/
-│       └── queries.py          # Queries analíticas + expectativa Focus
+│       └── queries.py              # Queries analíticas + expectativa Focus
 └── dashboard/
-    └── app.py                  # Interface Streamlit com dark mode
+    └── app.py                      # Interface Streamlit com dark mode
 ```
 
 ## 🛠️ Tecnologias
@@ -124,12 +150,14 @@ bcb-dashboard/
 |---|---|
 | Python 3.11 | Linguagem principal |
 | PostgreSQL 15 | Banco de dados |
+| Supabase | PostgreSQL gerenciado na nuvem |
 | psycopg2 | Conexão Python → PostgreSQL |
 | requests | Coleta das APIs do BCB e Focus |
 | pandas | Manipulação dos dados |
 | Streamlit | Dashboard interativo |
 | Plotly | Visualizações |
-| Docker | Ambiente do banco de dados |
+| Docker | Ambiente local do banco de dados |
+| GitHub Actions | Coleta automática diária |
 
 ## 📄 Licença
 
