@@ -78,9 +78,12 @@ ipca_12m = get_ipca_acumulado_12m()
 
 kpi_cols = st.columns(5)
 for i, row in latest.iterrows():
+    value = float(row['value'])
+    if row['name'] == 'CDI':
+        value = value * 252
     kpi_cols[i].metric(
         label=f"{row['name']}",
-        value=f"{float(row['value']):.2f} {row['unit']}",
+        value=f"{value:.2f} {row['unit']}",
         delta=row["date"].strftime("%b/%Y"),
     )
 kpi_cols[4].metric("IPCA acum. 12m", f"{ipca_12m:.2f}%")
