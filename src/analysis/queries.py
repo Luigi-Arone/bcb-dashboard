@@ -15,12 +15,16 @@ def get_ipca_acumulado_12m() -> float:
     """IPCA acumulado nos últimos 12 meses (produtório das taxas mensais)."""
     sql = """
         SELECT ROUND(
-            (EXP(SUM(LN(1 + value / 100))) - 1) * 100, 2
+        (EXP(SUM(LN(1 + value / 100))) - 1) * 100, 2
         ) AS acumulado
+        FROM (
+        SELECT DISTINCT ON (DATE_TRUNC('month', date)) value
         FROM economic_data
         WHERE series_code = '433'
-          AND date >= NOW() - INTERVAL '12 months'
-    """
+        AND date >= NOW() - INTERVAL '12 months'
+        ORDER BY DATE_TRUNC('month', date), date DESC
+        ) AS ipca_mensal
+        """
     with get_dict_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(sql)
