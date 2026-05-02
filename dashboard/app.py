@@ -86,7 +86,7 @@ for i, row in latest.iterrows():
         value=f"{value:.2f} {row['unit']}",
         delta=row["date"].strftime("%b/%Y"),
     )
-kpi_cols[4].metric("IPCA acum. 12m", f"{ipca_12m:.2f}%")
+kpi_cols[4].metric("IPCA acum. 12m", f"{ipca_12m:.2f}%", delta="últimos 12m disponíveis")
 
 st.divider()
 
