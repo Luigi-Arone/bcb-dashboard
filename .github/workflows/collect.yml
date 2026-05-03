@@ -3,7 +3,8 @@ name: Coleta diária BCB
 
 on:
   schedule:
-    - cron: '0 8 * * *'  # todo dia às 8h UTC (5h BRT)
+    - cron: '0 12 * * 1-5' # todo dia às 12h UTC (9h BRT), de Segunda a Sexta
+    - cron: '0 23 * * 1-5' # roda uma segunda vez todo dia às 23h UTC (20h BRT), de Segunda a Sexta
   workflow_dispatch:      # permite rodar manualmente também
 
 jobs:
