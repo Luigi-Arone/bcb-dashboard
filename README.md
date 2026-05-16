@@ -50,7 +50,7 @@ dashboard/app.py          ← Streamlit: visualização interativa com dark mode
 ## 🚀 Como rodar localmente
 
 ### Pré-requisitos
-- Python 3.12+
+- Python 3.11+
 - Docker e Docker Compose
 
 ### Inicialização rápida
@@ -157,7 +157,7 @@ nano /etc/nginx/sites-available/bcb-dashboard
 ```nginx
 server {
     listen 80;
-    server_name bcb.luigiarone.me;
+    server_name seu_subdominio.seudominio.me;
 
     location / {
         proxy_pass http://localhost:8501;
@@ -231,7 +231,7 @@ bcb-dashboard/
 
 | Tecnologia | Uso |
 |---|---|
-| Python 3.12 | Linguagem principal |
+| Python 3.11 | Linguagem principal |
 | PostgreSQL 15 | Banco de dados |
 | Supabase | PostgreSQL gerenciado na nuvem |
 | psycopg2 | Conexão Python → PostgreSQL |
