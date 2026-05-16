@@ -3,6 +3,7 @@ Dashboard Econômico Brasileiro
 Rode com: streamlit run dashboard/app.py
 """
 
+import requests
 import streamlit as st
 import plotly.graph_objects as go
 import pandas as pd
@@ -199,7 +200,13 @@ st.caption("Histórico real + expectativa Focus por reunião do Copom (BCB).")
 
 df_selic     = get_selic_mensal()
 df_cdi       = get_cdi_historico()
-df_focus     = get_expectativa_focus(meetings_ahead=6)
+try:
+    df_focus = get_expectativa_focus(meetings_ahead=6)
+except requests.exceptions.HTTPError as e:
+    if e.response.status_code == 503:
+        st.warning("⚠️ API Focus do BCB temporariamente indisponível. O gráfico de expectativas será exibido quando o serviço voltar.")
+        st.stop()
+    raise
 
 fig4 = go.Figure()
 
