@@ -189,6 +189,7 @@ def get_cdi_historico() -> pd.DataFrame:
             (EXP(SUM(LN(1 + value / 100))) - 1) * 100 AS cdi
         FROM economic_data
         WHERE series_code = '12'
+        AND DATE_TRUNC('month', date) < DATE_TRUNC('month', CURRENT_DATE)
         GROUP BY ds
         ORDER BY ds
     """
