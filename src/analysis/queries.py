@@ -184,7 +184,9 @@ def get_selic_mensal() -> pd.DataFrame:
 def get_cdi_historico() -> pd.DataFrame:
     """Retorna CDI histórico mensal anualizado (252 dias úteis)."""
     sql = """
-        SELECT DATE_TRUNC('month', date) AS ds, AVG(value) * 252 AS cdi
+        SELECT
+            DATE_TRUNC('month', date) AS ds,
+            (EXP(SUM(LN(1 + value / 100))) - 1) * 100 AS cdi
         FROM economic_data
         WHERE series_code = '12'
         GROUP BY ds
