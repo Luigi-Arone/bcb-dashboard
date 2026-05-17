@@ -186,13 +186,13 @@ def get_cdi_historico() -> pd.DataFrame:
     sql = """
         SELECT
             DATE_TRUNC('month', date) AS ds,
-            (EXP(SUM(LN(1 + value / 100))) - 1) * 100 AS cdi
+            (POWER(EXP(SUM(LN(1 + value / 100))), 252.0 / COUNT(*)) - 1) * 100 AS cdi
         FROM economic_data
         WHERE series_code = '12'
         AND DATE_TRUNC('month', date) < DATE_TRUNC('month', CURRENT_DATE)
         GROUP BY ds
         ORDER BY ds
-    """
+     """
     with get_dict_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(sql)
