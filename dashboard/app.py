@@ -81,7 +81,7 @@ kpi_cols = st.columns(5)
 for i, row in latest.iterrows():
     value = float(row['value'])
     if row['name'] == 'CDI':
-        value = value * 252
+        value = (pow(1 + value / 100, 252) - 1) * 100
     kpi_cols[i].metric(
         label=f"{row['name']}",
         value=f"{value:.2f} {row['unit']}",
